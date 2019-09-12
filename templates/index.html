@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Flask Plotlyjs Example</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 jumbotron text-center">
+        <h1>Belly Button Biodiversity Dashboard</h1>
+        <p>Use the interactive charts below to explore the dataset</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-2">
+        <div class="well">
+          <h5>SELECT Sample:</h5>
+          <select id="selDataset" onchange="optionChanged(this.value)"></select>
+        </div>
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            <h3 class="panel-title">Sample MetaData</h3>
+          </div>
+          <div id="sample-metadata" class="panel-body"></div>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div id="pie"></div>
+      </div>
+      <div class="col-md-5">
+        <div id="gauge"></div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div id="bubble"></div>
+    </div>
+  </div>
+
+  <!-- <script src="https://cdn.plot.ly/plotly-1.31.2.min.js"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+  
+  function init() 
+  {
+            var selector = d3.select("#selDataset");
+            d3.json("/names").then((sampleNames) => 
+            {
+                sampleNames.forEach((sample) => 
+                {
+                  selector
+                  .append("option")
+                  .text(sample)
+                  .property("value", sample);
+                });
+                const firstSample = sampleNames[0];
+                console.log(firstSample);
+                buildCharts(firstSample);
+                //buildMetadata(firstSample);
+            });
+  }
+
+  function buildCharts(sample) 
+  {
+            samplestring=`/samples/${sample}`
+            console.log(samplestring)
+            d3.json(samplestring).then((x) =>
+            {
+              console.log(x)
+              var ids = x.otu_ids
+              var values = x.sample_values
+              var labels = x.otu_labels
+              var trace1 = 
+                {
+                  x: ids,
+                  y: values,
+                  text: labels,
+                  mode: 'markers',
+                  marker: 
+                    {
+                      size: values,
+                      color: values,
+                      colorscale: 
+                        [
+                        [0, 'rgb(104, 222, 222)'], 
+                        [1, 'rgb(72, 104, 156)'], 
+                        [2, 'rgb(43, 34, 125)']
+                        ]
+                    }
+                  };
+              var data = [trace1];
+              var layout = 
+                {
+                  showlegend: false,
+                  xaxis: 
+                    {
+                      title: 'OTU ID'
+                    },
+                  height: 700,
+                  width: 1400
+                };
+
+              Plotly.newPlot("bubble", data, layout);
+              
+              var trace2 = 
+                [{
+                  values: values.slice(0,10),
+                  labels: ids.slice(0,10),
+                  hovertext: labels.slice(0,10),
+                  type: "pie",
+                  hoverinfo: 'text'
+                }];
+
+              var layout2 = 
+                {
+                  height: 800,
+                  width: 800
+                };
+                    
+              Plotly.newPlot("pie", trace2, layout2);
+
+            });
+  }
+
+  function optionChanged(newSample) 
+  {
+            buildCharts(newSample);
+            //buildMetadata(newSample);
+  }
+
+  function buildMetadata(sample) 
+  {
+    
+
+
+  }
+
+
+
+  init();
+
+  </script>
+
+</body>
+
+</html>
